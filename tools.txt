@@ -1,0 +1,243 @@
+[
+  {
+    "name": "get_config",
+    "description": "Get the entire server configuration including blocked commands, default shell, allowed directories, and version info.",
+    "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false }
+  },
+  {
+    "name": "set_config_value",
+    "description": "Set a specific configuration value by key. This allows dynamic changes to settings like blockedCommands, defaultShell, and allowedDirectories without restarting the server.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "key": { "type": "string", "description": "The configuration key to set" },
+        "value": { "description": "The new value for the configuration key" }
+      },
+      "required": ["key", "value"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_file",
+    "description": "Read the content of a local file or URL. Can read entire file, partial content from the beginning, or tail from the end. Can also display images.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": { "type": "string", "description": "Local file path or URL to read" },
+        "isUrl": { "type": "boolean", "default": false, "description": "Set to true if path is a URL" },
+        "offset": { "type": "number", "default": 0, "description": "Line number to start reading from (negative reads from end)" },
+        "length": { "type": "number", "default": 1000, "description": "Maximum number of lines to read" }
+      },
+      "required": ["path"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_multiple_files",
+    "description": "Read content from multiple files at once. Returns content of each file individually.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "paths": { "type": "array", "items": { "type": "string" }, "description": "List of file paths to read" }
+      },
+      "required": ["paths"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "write_file",
+    "description": "Write or append text content to a file. Recommended to write large data in chunks.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": { "type": "string", "description": "Path of the file to write" },
+        "content": { "type": "string", "description": "Text content to write" },
+        "mode": { "enum": ["rewrite", "append"], "default": "rewrite", "description": "Write mode: overwrite or append" }
+      },
+      "required": ["path", "content"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "create_directory",
+    "description": "Create a new directory or ensure a directory exists. Can create parent directories if needed.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": { "type": "string", "description": "Directory path to create" }
+      },
+      "required": ["path"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_directory",
+    "description": "List files and subdirectories in a directory, indicating whether each entry is a file or directory.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": { "type": "string", "description": "Directory path to list" }
+      },
+      "required": ["path"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "move_file",
+    "description": "Move or rename a file or directory.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "source": { "type": "string", "description": "Source file/directory path" },
+        "destination": { "type": "string", "description": "Destination file/directory path" }
+      },
+      "required": ["source", "destination"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "search_files",
+    "description": "Search for files by name pattern within a directory and its subdirectories. Case-insensitive search.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": { "type": "string", "description": "Directory to search in" },
+        "pattern": { "type": "string", "description": "Filename pattern to search for" },
+        "timeoutMs": { "type": "number", "description": "Maximum search time in milliseconds" }
+      },
+      "required": ["path", "pattern"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_file_info",
+    "description": "Get detailed metadata about a file or directory including size, creation/modification dates, permissions, and line count for text files.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": { "type": "string", "description": "Path to file or directory" }
+      },
+      "required": ["path"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "search_code",
+    "description": "Fast, powerful search for text/code within files in a directory using ripgrep. Supports regex and file type filtering.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "path": { "type": "string", "description": "Directory to search in" },
+        "pattern": { "type": "string", "description": "Text or regex pattern to search for" },
+        "filePattern": { "type": "string", "description": "File pattern filter (e.g., *.js)" },
+        "ignoreCase": { "type": "boolean", "description": "Case-insensitive search" },
+        "maxResults": { "type": "number", "description": "Maximum number of results" },
+        "includeHidden": { "type": "boolean", "description": "Search hidden files/folders" },
+        "contextLines": { "type": "number", "description": "Lines of context before/after matches" }
+      },
+      "required": ["path", "pattern"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "edit_block",
+    "description": "Perform precise find/replace operations within a file. Supports fuzzy matching if exact text isn't found.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "file_path": { "type": "string", "description": "Path to file to edit" },
+        "old_string": { "type": "string", "description": "Exact text to find and replace" },
+        "new_string": { "type": "string", "description": "New text to replace with" },
+        "expected_replacements": { "type": "number", "default": 1, "description": "Expected number of replacements" }
+      },
+      "required": ["file_path", "old_string", "new_string"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "start_process",
+    "description": "Start a new process in the terminal (like running a script or opening Python). Returns a PID for later interaction.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "command": { "type": "string", "description": "Command to execute" },
+        "timeout_ms": { "type": "number", "description": "Timeout in milliseconds to wait for process start" },
+        "shell": { "type": "string", "description": "Shell to use (e.g., bash, powershell.exe)" }
+      },
+      "required": ["command", "timeout_ms"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "read_process_output",
+    "description": "Read output from a running process started with start_process. Can detect when process finishes or waits for input.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "pid": { "type": "number", "description": "Process ID to read from" },
+        "timeout_ms": { "type": "number", "description": "Maximum time to wait for output" }
+      },
+      "required": ["pid"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "interact_with_process",
+    "description": "Send input to a running process (like typing into Python shell) and get response.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "pid": { "type": "number", "description": "Process ID to send input to" },
+        "input": { "type": "string", "description": "Text/command to send to process" },
+        "timeout_ms": { "type": "number", "description": "Maximum time to wait for response" },
+        "wait_for_prompt": { "type": "boolean", "description": "Wait until process is ready for more input" }
+      },
+      "required": ["pid", "input"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "force_terminate",
+    "description": "Immediately terminate a process started with start_process.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "pid": { "type": "number", "description": "Process ID to terminate" }
+      },
+      "required": ["pid"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "list_sessions",
+    "description": "List all active processes started by Desktop Commander with PID, status, and runtime.",
+    "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false }
+  },
+  {
+    "name": "list_processes",
+    "description": "List all processes running on the system with PID, command, and CPU/memory usage.",
+    "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false }
+  },
+  {
+    "name": "kill_process",
+    "description": "Forcibly terminate any system process by PID.",
+    "inputSchema": {
+      "type": "object",
+      "properties": {
+        "pid": { "type": "number", "description": "Process ID to kill" }
+      },
+      "required": ["pid"],
+      "additionalProperties": false
+    }
+  },
+  {
+    "name": "get_usage_stats",
+    "description": "Display usage statistics showing tool usage frequency and success/failure rates.",
+    "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false }
+  },
+  {
+    "name": "give_feedback_to_desktop_commander",
+    "description": "Open a web browser to submit feedback directly to the developers.",
+    "inputSchema": { "type": "object", "properties": {}, "additionalProperties": false }
+  }
+]
