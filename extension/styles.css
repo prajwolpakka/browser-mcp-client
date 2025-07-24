@@ -93,4 +93,22 @@
   .loading {
     color: #6c757d;
     font-style: italic;
+  }  }
+  
+  .error {
+    color: #dc3545;
   }
+  
+  .loading {
+    color: #6c757d;
+    font-style: italic;
+  }
+
+/* ---- DRAG SUPPORT ---- */
+#desktop-commander-box {
+  cursor: move;          /* visual hint */
+}
+
+.commander-header {
+  cursor: move;          /* the whole header is the drag handle */
+}

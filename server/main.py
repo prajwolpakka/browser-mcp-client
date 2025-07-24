@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import traceback
+from datetime import datetime
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import json
@@ -47,51 +49,32 @@ TOOL_MAP = {
 def health_check():
     return jsonify({"status": "healthy"})
 
+
 @app.route('/execute', methods=['POST'])
 def execute_command():
+    req_time = datetime.now().strftime('%H:%M:%S')
+    raw_body = request.get_data(as_text=True)
+    print(f"[{req_time}] ➜  REQUEST: {raw_body}")
+
     try:
-        data = request.get_json()
-        command = data.get('command', '')
-        
-        if not command:
-            return jsonify({"success": False, "error": "Empty command"})
-        
-        # Parse command (tool_name(args))
-        import re
-        match = re.match(r'(\w+)\((.*)\)', command.strip())
-        if not match:
-            return jsonify({"success": False, "error": "Invalid command format"})
-        
-        tool_name, args_str = match.groups()
-        
+        payload = request.get_json(force=True)
+        tool_name = payload["name"]
+        args = payload.get("arguments", {})
+        print(f"[{req_time}] 🔧  TOOL: {tool_name} | ARGS: {args}")
+
         if tool_name not in TOOL_MAP:
-            return jsonify({"success": False, "error": f"Unknown tool: {tool_name}"})
-        
-        # Parse arguments
-        args = {}
-        if args_str.strip():
-            # Simple argument parsing (for demo - consider using ast.literal_eval for production)
-            for arg in args_str.split(','):
-                if '=' in arg:
-                    key, value = arg.split('=', 1)
-                    key = key.strip()
-                    value = value.strip().strip("'\"")
-                    args[key] = value
-        
-        # Execute tool
-        tool_func = TOOL_MAP[tool_name]
-        result = tool_func(**args)
-        
-        return jsonify({
-            "success": True,
-            "data": str(result)
-        })
-        
+            msg = f"Unknown tool: {tool_name}"
+            print(f"[{req_time}] ❌  {msg}")
+            return jsonify({"success": False, "error": msg})
+
+        result = TOOL_MAP[tool_name](**args)
+        print(f"[{req_time}] ✅  RESULT: {result}")
+        return jsonify({"success": True, "data": str(result)})
+
     except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        })
+        tb = traceback.format_exc()
+        print(f"[{req_time}] 🚨  ERROR:\n{tb}")
+        return jsonify({"success": False, "error": str(e)})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000, debug=True)
